@@ -1,0 +1,136 @@
+---
+title: "LibUC2 overview"
+description: "Parser for UC2's text-based UCON save format."
+---
+
+LibUC2 reads UC2 (Ultimate Coaster 2) save files and exposes their contents as typed C# objects. It has no external dependencies and is self-contained.
+
+## The UCON format
+
+UC2 stores its parks in a proprietary text format called **UCON** (Ultimate Coaster Object Notation). It is a hierarchical node/property format, loosely analogous to JSON, but specific to UC2. LibUC2 implements a full parser for this format in `UCONNode.cs`.
+
+<Note>
+UCON is a name coined by this project's author to refer to UC2's unnamed text format. It is not an official term.
+</Note>
+
+## The UC2 static class
+
+### Constants
+
+```csharp
+// Distance in Unity units between adjacent terrain vertices in UC2
+public const float VertexSpacing = 6.7283464566f;
+
+// Empirical correction factor applied when mapping UC2 heights to UC3
+public const float TerrainCorrectionFactor = 1.1153f;
+
+// Each direction has 64 vertices; the full grid is 128 × 128
+public const int VertsPerDirection = 64;
+public const int VertsPerSide = 128; // VertsPerDirection * 2
+
+// Half-vertex offset applied to all world coordinates to correct
+// for UC2's odd/even grid stagger
+public static readonly Vector3 OddEvenCompensationOffset =
+    new Vector3(-VertexSpacing * 0.5f, 0, -VertexSpacing * 0.5f);
+```
+
+`TerrainCorrectionFactor` was determined through trial and error when comparing UC2 terrain heights to their visual appearance in UC3. Apply it when transferring height values between the two formats.
+
+`OddEvenCompensationOffset` compensates for UC2 storing terrain on an alternating odd/even vertex grid. Add this to all converted world-space coordinates to keep objects aligned with the terrain.
+
+### LoadWorld
+
+```csharp
+public static Schema.World LoadWorld(string path)
+```
+
+Reads the `.uc2sav` file at `path`, parses the UCON text, and returns a fully populated `Schema.World`. Throws `IOException` if the file cannot be read.
+
+## Basic usage
+
+```csharp
+var world = UC2.LoadWorld("mypark.uc2sav");
+
+// Read terrain height at grid coordinate (column 32, row 48)
+float height = world.GetHeightAtCoord(32, 48);
+
+// Get the park name
+Console.WriteLine(world.Name);
+
+// Iterate scenery
+foreach (var item in world.SceneryItems)
+    Console.WriteLine($"{item.Type} at {item.Position}");
+```
+
+## World class accessors
+
+### Park metadata
+
+<ParamField path="Name" type="string">
+  The name of the park as entered in UC2.
+</ParamField>
+
+### Terrain
+
+<ParamField path="GetHeightAtCoord(int c, int r)" type="float">
+  Returns the terrain height at integer grid coordinate `(c, r)`. Coordinates are zero-based and range from `0` to `VertsPerSide - 1` (0–127).
+</ParamField>
+
+<ParamField path="GetHeightAtFloatCoord(float x, float z)" type="float">
+  Returns the terrain height at a world-space position `(x, z)` using bilinear interpolation between the four nearest grid vertices.
+</ParamField>
+
+### Water
+
+<ParamField path="WaterHeight" type="float">
+  Y height of the water surface in UC2 world units.
+</ParamField>
+
+<ParamField path="WaterColor" type="Color4">
+  RGBA color of the water surface.
+</ParamField>
+
+<ParamField path="EnableWater" type="bool">
+  Whether water is enabled in this park.
+</ParamField>
+
+### Camera
+
+<ParamField path="CameraStartPosition" type="Vector3">
+  The camera position when the park is first loaded.
+</ParamField>
+
+<ParamField path="CameraStartDirection" type="Vector3">
+  The camera look direction when the park is first loaded.
+</ParamField>
+
+### Coaster
+
+<ParamField path="Coaster" type="CoasterData">
+  The single coaster in the UC2 park. UC2 supports exactly one coaster per save file.
+</ParamField>
+
+### Scenery
+
+<ParamField path="SceneryItems" type="List<SceneryItem>">
+  All scenery objects placed in the park.
+</ParamField>
+
+## Coordinate system notes
+
+UC2 uses a different coordinate scale and grid alignment than UC3. When converting:
+
+1. Multiply height values by `TerrainCorrectionFactor` to match UC3's visual scale.
+2. Add `OddEvenCompensationOffset` to all world-space positions to align objects with the terrain grid.
+3. The UC2 terrain grid is 128 × 128 vertices (`VertsPerSide`), but UC3 may use a different `vertsPerDirection`. Scale coordinates accordingly.
+
+## See also
+
+<Columns cols={2}>
+  <Card title="LibUC2 schema" icon="list-tree" href="/reference/libuc2/schema">
+    Field-level documentation for CoasterData, CoasterSegment, and SceneryItem.
+  </Card>
+  <Card title="LibUC3 overview" icon="file-binary" href="/reference/libuc3/overview">
+    The target format when converting from UC2.
+  </Card>
+</Columns>

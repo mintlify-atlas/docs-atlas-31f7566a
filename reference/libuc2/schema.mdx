@@ -1,0 +1,204 @@
+---
+title: "LibUC2 schema"
+description: "Field reference for CoasterData, CoasterSegment, and SceneryItem parsed from UC2 UCON save files."
+---
+
+## UCON format structure
+
+UCON (Ultimate Coaster Object Notation) is UC2's proprietary text-based save format. It is hierarchical: a file is made up of named **nodes**, each of which may contain **properties** (key/value pairs) and nested child nodes. LibUC2's `UCONNode` class models this structure, and `Schema.World` parses the top-level node tree into typed C# fields.
+
+A simplified sketch of a UCON file looks like:
+
+```text
+WORLD {
+  name = "My Park"
+  waterHeight = 12.5
+  COASTER {
+    type = "woodencoaster"
+    closedCircuit = true
+    SEGMENT {
+      type = 0
+      endBanking = 15.0
+      ...
+    }
+  }
+  SCENERY {
+    type = OakTree
+    posX = 10.0
+    ...
+  }
+}
+```
+
+<Note>
+UCON is not a public standard. The format is reverse-engineered from UC2 save files. Field names are as they appear in the raw text.
+</Note>
+
+---
+
+## CoasterData
+
+Represents the single coaster stored in a UC2 save file.
+
+<ParamField path="Type" type="string">
+  UC2's internal type identifier for the coaster model. See the coaster type mapping guide for UC2-to-UC3 type ID conversions.
+</ParamField>
+
+<ParamField path="Segments" type="List<CoasterSegment>">
+  Ordered list of bezier curve segments that define the full track layout.
+</ParamField>
+
+<ParamField path="Colors" type="Dictionary<string, Color4>">
+  Named color slots for the coaster. Keys are UC2's internal color slot names.
+</ParamField>
+
+<ParamField path="NumCars" type="int">
+  Number of cars per train.
+</ParamField>
+
+<ParamField path="GoalNumTrains" type="int">
+  Target number of trains running simultaneously.
+</ParamField>
+
+<ParamField path="ClosedCircuit" type="bool">
+  When `true`, the last segment connects back to the first to form a closed loop.
+</ParamField>
+
+<ParamField path="UseAdvancedColors" type="bool">
+  When `true`, per-segment color scheme overrides are active.
+</ParamField>
+
+---
+
+## CoasterSegment
+
+A single bezier curve segment of track, plus functional zone metadata.
+
+<ParamField path="PrimaryBezier" type="BezierCurve">
+  Cubic bezier curve with 4 control points (P0–P3) defining this segment's shape in world space.
+</ParamField>
+
+<ParamField path="EndBanking" type="float">
+  Bank angle in degrees at the end of this segment.
+</ParamField>
+
+<ParamField path="ContinuousRoll" type="bool">
+  When `true`, the track continues rolling through this segment's banking angle without stopping.
+</ParamField>
+
+<ParamField path="Type" type="int">
+  Functional zone type. Possible values:
+
+  | Value | Zone type |
+  |---|---|
+  | `0` | Standard |
+  | `1` | Brake |
+  | `2` | Launch |
+  | `3` | Brake (block section) |
+  | `4` | Station |
+</ParamField>
+
+<ParamField path="ChainSpeed" type="float">
+  Chain lift speed in UC2 units. Relevant when the preceding segment starts a lift hill.
+</ParamField>
+
+<ParamField path="BrakeSpeed" type="float">
+  Target speed for brake zones.
+</ParamField>
+
+<ParamField path="BrakeDecel" type="float">
+  Deceleration rate for brake zones.
+</ParamField>
+
+<ParamField path="LaunchSpeed" type="float">
+  Target exit speed for launch zones.
+</ParamField>
+
+<ParamField path="LaunchAccel" type="float">
+  Acceleration rate for launch zones.
+</ParamField>
+
+<ParamField path="BlockSection" type="bool">
+  When `true`, this zone acts as a block section brake that holds trains until the next block is clear.
+</ParamField>
+
+<ParamField path="ColorScheme" type="int">
+  1-indexed color scheme applied to this segment. Corresponds to a key in `CoasterData.Colors`.
+</ParamField>
+
+---
+
+## SceneryItem
+
+A single placed scenery object in the park.
+
+<ParamField path="Type" type="SceneryType">
+  The scenery object type. Possible values:
+
+  | Value | Object |
+  |---|---|
+  | `Cube` | Box primitive |
+  | `Cylinder` | Cylinder primitive |
+  | `Sphere` | Sphere primitive |
+  | `SmallRock` | Small rock prop |
+  | `MediumRock` | Medium rock prop |
+  | `BigRock` | Large rock prop |
+  | `OakTree` | Oak tree |
+  | `FirTree` | Fir/pine tree |
+  | `PalmTree` | Palm tree |
+  | `SupportTube` | Support column |
+  | `BoxFooter` | Box footer/footing |
+</ParamField>
+
+<ParamField path="Position" type="Vector3">
+  World-space position of the object in UC2 units.
+</ParamField>
+
+<ParamField path="Scale" type="Vector3">
+  Per-axis scale multipliers.
+</ParamField>
+
+<ParamField path="EulerYaw" type="float">
+  Yaw rotation in degrees.
+</ParamField>
+
+<ParamField path="EulerPitch" type="float">
+  Pitch rotation in degrees.
+</ParamField>
+
+<ParamField path="EulerRoll" type="float">
+  Roll rotation in degrees.
+</ParamField>
+
+<ParamField path="Color1" type="Color4">
+  Primary color channel.
+</ParamField>
+
+<ParamField path="Color2" type="Color4">
+  Secondary color channel.
+</ParamField>
+
+<ParamField path="Color3" type="Color4">
+  Tertiary color channel.
+</ParamField>
+
+<ParamField path="Color4" type="Color4">
+  Quaternary color channel.
+</ParamField>
+
+<ParamField path="TextureScale" type="float">
+  UV texture tiling scale. Higher values tile the texture more densely.
+</ParamField>
+
+---
+
+## See also
+
+<Columns cols={2}>
+  <Card title="LibUC2 overview" icon="file-text" href="/reference/libuc2/overview">
+    Usage guide and constants for the UC2 static class and World accessors.
+  </Card>
+  <Card title="LibUC3 schema" icon="list-tree" href="/reference/libuc3/schema">
+    The target schema when converting UC2 coasters and scenery to UC3.
+  </Card>
+</Columns>

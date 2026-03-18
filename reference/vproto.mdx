@@ -1,0 +1,133 @@
+---
+title: "VProto"
+description: "Custom protobuf-compatible serialization library used by LibUC3."
+---
+
+VProto is a custom protobuf-compatible serialization library written from scratch for this project. It produces and consumes wire-format bytes that are byte-for-byte compatible with standard protobuf, while keeping the implementation entirely self-contained with no third-party dependencies.
+
+All LibUC3 message classes are built on top of VProto.
+
+## Defining a message
+
+Inherit from `Message` and annotate fields with `[ProtoField(fieldNumber)]`:
+
+```csharp
+public class ExampleMsg : Message
+{
+    [ProtoField(1)] public string Name = "";
+    [ProtoField(2)] public int Value = 0;
+    [ProtoField(3)] public List<ExampleMsg> Children = new();
+}
+```
+
+Field numbers must be unique within a message and must not change once data has been written — they are encoded in the binary output, not the field names.
+
+<Warning>
+Renaming a C# field is safe. Changing a `[ProtoField]` number is a breaking change and will corrupt existing saved files.
+</Warning>
+
+## Serialization and deserialization
+
+```csharp
+// Deserialize from bytes
+byte[] bytes = File.ReadAllBytes("park.uc3world");
+var msg = Message.Parse<ExampleMsg>(bytes);
+
+// Serialize to bytes
+byte[] output = msg.SerializeToBytes();
+File.WriteAllBytes("park.uc3world", output);
+```
+
+`Message.Parse<TMessage>` is a static generic method. The type parameter must be a concrete `Message` subclass with a parameterless constructor.
+
+## Supported field types
+
+VProto determines the protobuf encoding from the .NET type of the annotated field. The mapping is:
+
+| ProtobufType | .NET type | Wire type |
+|---|---|---|
+| `Int32` | `int` | Varint |
+| `Int64` | `long` | Varint |
+| `UInt32` | `uint` | Varint |
+| `UInt64` | `ulong` | Varint |
+| `Bool` | `bool` | Varint |
+| `Float` | `float` | Fixed32 |
+| `Double` | `double` | Fixed64 |
+| `String` | `string` | LengthDelimited |
+| `Bytes` | `byte[]` | LengthDelimited |
+| `Enum` | any C# `enum` | Varint |
+| `Message` | any `Message` subclass | LengthDelimited |
+
+### Repeated fields
+
+`List<T>` fields are automatically treated as protobuf `repeated` fields. Every element is encoded as a separate record. `T` can be any type from the table above.
+
+```csharp
+[ProtoField(5)] public List<string> Tags = new();
+[ProtoField(6)] public List<ChildMsg> Items = new();
+```
+
+## Lifecycle hooks
+
+Two virtual methods on `Message` let you run logic around serialization:
+
+```csharp
+public virtual void OnPreSerialize() { }
+public virtual void OnPostDeserialize() { }
+```
+
+`OnPreSerialize()` is called immediately before the message is written to bytes. Use it to compute derived fields or enforce invariants.
+
+`OnPostDeserialize()` is called immediately after a message is read from bytes. Use it to reconstruct non-serialized state from the parsed fields.
+
+Override these in your `Message` subclass:
+
+```csharp
+public class MyMsg : Message
+{
+    [ProtoField(1)] public int RawValue = 0;
+
+    // Not serialized — computed from RawValue after parsing
+    public float ScaledValue;
+
+    public override void OnPostDeserialize()
+    {
+        ScaledValue = RawValue / 1000f;
+    }
+
+    public override void OnPreSerialize()
+    {
+        RawValue = (int)(ScaledValue * 1000f);
+    }
+}
+```
+
+## WireType enum
+
+VProto uses the same four wire types as the protobuf specification:
+
+| Value | Name | Used for |
+|---|---|---|
+| `0` | `Varint` | int, long, uint, ulong, bool, enum |
+| `1` | `Fixed64` | double, sfixed64 |
+| `2` | `LengthDelimited` | string, bytes, embedded messages, repeated fields |
+| `5` | `Fixed32` | float, sfixed32 |
+
+<Note>
+Wire types 3 and 4 (start/end group) are not used by VProto. This matches modern protobuf practice — the group encoding was deprecated in proto3.
+</Note>
+
+## Internal components
+
+VProto's source files and their responsibilities:
+
+| File | Responsibility |
+|---|---|
+| `Message.cs` | Base class, reflection-driven field discovery, `Parse` / `SerializeToBytes` |
+| `RawMessage.cs` | Intermediate representation of a parsed but untyped protobuf message |
+| `RawField.cs` | A single parsed field value with its wire type |
+| `RawFieldKey.cs` | Decoded field number + wire type tag |
+| `ReadState.cs` | Streaming byte reader used during deserialization |
+| `WriteState.cs` | Streaming byte writer used during serialization |
+| `Utils.cs` | Varint encoding/decoding helpers |
+| `WireType.cs` | `WireType` enum definition |

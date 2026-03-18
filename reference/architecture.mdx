@@ -1,0 +1,99 @@
+---
+title: "Architecture overview"
+description: "How UC3Tools is structured: the UI layer, conversion logic, and library layer."
+---
+
+UC3Tools is organized into four projects with clear separation of concerns. The WinForms GUI never touches file formats directly — it delegates all parsing and serialization to dedicated libraries.
+
+## Project dependency diagram
+
+```
+UC3Tools (WinForms GUI, .NET 9 WinExe)
+├── depends on → LibUC3
+├── depends on → LibUC2
+└── depends on → VProto (transitively, via LibUC3)
+
+LibUC3 (UC3 world file library)
+└── depends on → VProto
+
+LibUC2 (UC2 save file parser)
+└── no external dependencies
+
+VProto (custom protobuf serialization)
+└── no external dependencies
+```
+
+## Three-layer architecture
+
+### UI layer — UC3Tools
+
+The top layer is a WinForms application that hosts a set of pluggable tools. Each tool is registered in `MainForm` and provides its own UI panel. The layer is responsible only for user interaction: picking files, triggering conversions, and displaying results.
+
+### Conversion logic
+
+Each tool contains the transformation logic that maps one data model to another. For example, `UC2ToUC3Converter` reads a `LibUC2.Schema.World` and produces a `LibUC3` message graph. `Converter` translates FVD track data into UC3 NURBS curves. This layer sits inside the `UC3Tools` project and imports both libraries.
+
+### Library layer — LibUC2, LibUC3, VProto
+
+The bottom layer is format-specific code with no UI dependencies.
+
+- **LibUC2** parses UC2's text-based UCON save format into a typed object model.
+- **LibUC3** reads and writes UC3's binary `.uc3world` format (protobuf-encoded via VProto).
+- **VProto** is the custom protobuf-compatible serialization engine used by LibUC3.
+
+## The ITool interface
+
+All tools in the UI layer implement a single interface:
+
+```csharp
+public interface ITool
+{
+    string Name { get; }
+    Control CreateUI();
+}
+```
+
+`Name` is shown in the tool selector. `CreateUI()` returns the WinForms `Control` that populates the main content area when the tool is selected. This pattern lets new tools be added by implementing the interface and appending an instance to the `_tools` array in `MainForm` — no other wiring is needed.
+
+The three built-in tools are:
+
+| Class | Name shown in UI | Purpose |
+|---|---|---|
+| `FvdToUc3Tool` | FVD to UC3 | Converts FVD track files to UC3 coasters |
+| `Uc2ToUc3Tool` | UC2 to UC3 | Converts full UC2 parks to UC3 worlds |
+| `TerrainGenTool` | Terrain generator | Standalone terrain mesh generator |
+
+## Data flow
+
+Every tool follows the same pipeline:
+
+```
+File on disk
+    ↓  read bytes / read text
+Parse into typed object model
+    ↓  LibUC2.UC2.LoadWorld() or similar
+Transform
+    ↓  Converter / UC2ToUC3Converter
+Populate LibUC3 message graph
+    ↓  UC3.CreateBlankWorld(), coaster/terrain mutations
+Serialize to bytes
+    ↓  world.SerializeToBytes()  (via VProto)
+Write output file
+```
+
+## Library summaries
+
+<Columns cols={2}>
+  <Card title="LibUC3" icon="file-binary" href="/reference/libuc3/overview">
+    Reads and writes UC3's `.uc3world` binary format. Provides `CreateBlankWorld()` and `CreateCoaster()` factory helpers, plus the full protobuf message hierarchy for coasters, terrain, and scenery.
+  </Card>
+  <Card title="LibUC2" icon="file-text" href="/reference/libuc2/overview">
+    Parses UC2's text-based UCON save files. Exposes typed accessors for terrain height data, coaster geometry, water settings, scenery items, and camera state.
+  </Card>
+  <Card title="VProto" icon="binary" href="/reference/vproto">
+    Custom protobuf-compatible serialization library. Drives all LibUC3 serialization via `[ProtoField]` attributes and `Message` base class.
+  </Card>
+  <Card title="UC3Tools" icon="layout-panel-left" href="/reference/architecture">
+    WinForms host application. Wires together the three libraries through the `ITool` plugin interface and conversion classes.
+  </Card>
+</Columns>

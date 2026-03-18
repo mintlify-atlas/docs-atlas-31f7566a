@@ -1,0 +1,116 @@
+---
+title: "LibUC3 overview"
+description: "Library for reading and writing UC3's .uc3world binary format."
+---
+
+LibUC3 is the library responsible for reading and writing UC3's `.uc3world` save files. The format is protobuf-encoded binary data, serialized via [VProto](/reference/vproto). LibUC3 exposes a typed C# message hierarchy that maps one-to-one with the protobuf schema, plus a small set of factory helpers on the `UC3` static class.
+
+## The UC3 static class
+
+`UC3` provides two factory methods:
+
+### CreateBlankWorld
+
+```csharp
+public static CoasterWorldSaveFileMsg CreateBlankWorld()
+```
+
+Loads a minimal but valid UC3 world from the embedded resource `LibUC3.blank.uc3world`. The returned message can be mutated freely and then re-serialized. Use this as your starting point whenever you need to produce a new `.uc3world` file.
+
+### CreateCoaster
+
+```csharp
+public static CoasterSettingsMsg CreateCoaster(string name)
+```
+
+Creates a new `CoasterSettingsMsg` populated with a default track geometry (a single NURBS part group) and sets the `Name` field. The returned coaster is ready to have curve control points, bank nodes, and segment nodes added before being inserted into a world.
+
+## Basic usage
+
+```csharp
+// Create a new world and add a coaster
+var world = UC3.CreateBlankWorld();
+var coaster = UC3.CreateCoaster("My Coaster");
+world.World.Coasters.Add(coaster);
+
+// Write to disk
+File.WriteAllBytes("output.uc3world", world.SerializeToBytes());
+```
+
+```csharp
+// Load an existing world
+byte[] bytes = File.ReadAllBytes("existing.uc3world");
+var world = Message.Parse<CoasterWorldSaveFileMsg>(bytes);
+Console.WriteLine(world.World.Coasters.Count);
+```
+
+## Manipulating terrain
+
+Terrain is stored in `world.World.Terrain` as a `TerrainSettingsMsg`. Call `ResetTerrain` first to initialize the height grid before setting individual vertices:
+
+```csharp
+var terrain = world.World.Terrain;
+
+// Initialize a 128-vertex grid with a green base color
+terrain.ResetTerrain(128, new Color4(20, 117, 65, 255));
+
+// Set vertex spacing in meters
+terrain.VertexSpacing = 0.195f;
+
+// Set individual vertex heights (in meters)
+terrain.SetHeightAtCoord(col, row, heightInMeters);
+
+// Set water height (use -2 to disable water)
+terrain.WaterYLevel = 2.5f;
+```
+
+<Note>
+Vertex coordinates use a flat 2D grid. `col` and `row` are zero-based indices from 0 to `vertsPerDirection - 1`.
+</Note>
+
+## Working with coaster track
+
+Track geometry is stored as NURBS curves inside a `CoasterCurveSettingsMsg`. The coaster object model nests several layers deep:
+
+```
+CoasterSettingsMsg
+└── PartGroups: List<CoasterPartGroupSettingsMsg>
+    └── (part group)
+        └── Parts: List<CoasterPartSettingsMsg>
+            └── (part)
+                └── Curves: List<CoasterCurveSettingsMsg>
+                    └── (curve)
+                        ├── NurbsSequence: NurbsSequenceSettingsMsg
+                        │   └── ControlPoints: List<NurbsSequenceControlPointSettings>
+                        ├── BankNodes: List<BankNodeSettingsMsg>
+                        └── SegmentNodes: List<SegmentNodeSettingsMsg>
+```
+
+Each control point has a `Position` (Vector3), a `Weight` (float), and a `Strict` flag that pins the spline through that point exactly.
+
+## Adding scenery
+
+```csharp
+var item = new SceneryItemInstanceSettingsMsg
+{
+    SceneryItemId = "oak_tree",
+    OriginX = 10.0f,
+    OriginY = 0.0f,
+    OriginZ = 10.0f,
+    ScaleX = 1.0f,
+    ScaleY = 1.0f,
+    ScaleZ = 1.0f,
+};
+world.World.SceneryState.ItemSettings.Add(item);
+```
+
+## See also
+
+<Columns cols={2}>
+  <Card title="LibUC3 schema" icon="list-tree" href="/reference/libuc3/schema">
+    Full message hierarchy with field-level documentation for all major LibUC3 types.
+  </Card>
+  <Card title="VProto" icon="binary" href="/reference/vproto">
+    The serialization library that underpins LibUC3's binary format.
+  </Card>
+</Columns>

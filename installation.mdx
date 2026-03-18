@@ -1,0 +1,83 @@
+---
+title: "Installation"
+description: "Build UC3Tools from source and run it on Windows."
+---
+
+<Note>
+  UC3Tools targets `net9.0-windows` and uses Windows Forms. It runs on Windows only and cannot be built or run on macOS or Linux.
+</Note>
+
+There is no installer yet. You build UC3Tools directly from the source repository using the .NET 9 SDK.
+
+<Tip>
+  Visual Studio 2022 or JetBrains Rider give you the best experience — full IntelliSense, integrated build output, and one-click run. Either works equally well for this project.
+</Tip>
+
+## Build from source
+
+<Steps>
+  <Step title="Install prerequisites">
+    You need:
+
+    - **Windows** (required — the app will not build or run on other platforms)
+    - **[.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)** — download and install the latest .NET 9 SDK for Windows
+
+    Verify your SDK installation:
+
+    ```bash
+    dotnet --version
+    ```
+
+    The output should start with `9.`.
+  </Step>
+
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/Vainstains/UC3Tools.git
+    ```
+  </Step>
+
+  <Step title="Build the solution">
+    Open `UC3Tools.sln` in Visual Studio 2022 or JetBrains Rider and build the solution, **or** run the following from the repository root:
+
+    ```bash
+    dotnet build UC3Tools.sln -c Release
+    ```
+
+    NuGet will automatically restore the `OpenTK.Mathematics` dependency on the first build.
+  </Step>
+
+  <Step title="Run the application">
+    Navigate to the build output folder and launch the executable:
+
+    ```bash
+    UC3Tools/bin/Release/net9.0-windows/UC3Tools.exe
+    ```
+
+    You can also run it directly from your IDE using the **Run** or **Start** button.
+  </Step>
+</Steps>
+
+## After launching
+
+When UC3Tools opens, the main window shows a **tool selector** dropdown. Choose the tool you want to use:
+
+| Option | Description |
+| --- | --- |
+| **FVD CSV → UC3 World** | Import a coaster layout exported from No Limits 2's FVD++ tool into a UC3 world file. |
+| **UC2 → UC3 World** | Migrate a complete Ultimate Coaster 2 park — terrain, coasters, and scenery — into UC3 format. |
+| **Terrain File Generator** | Generate a flat or heightmap-based terrain file at a configurable resolution. |
+
+Select a tool from the dropdown to load its input form, then follow the tool-specific instructions below.
+
+<CardGroup cols={2}>
+  <Card title="FVD CSV → UC3 World" icon="arrow-right-arrow-left" href="/tools/fvd-to-uc3">
+    Import coaster layouts from No Limits 2's FVD++ export directly into UC3 world files.
+  </Card>
+  <Card title="UC2 → UC3 World" icon="rotate" href="/tools/uc2-to-uc3">
+    Migrate a complete Ultimate Coaster 2 park into UC3 format.
+  </Card>
+  <Card title="Terrain File Generator" icon="mountain" href="/tools/terrain-generator">
+    Generate terrain files from a flat baseline or a greyscale heightmap image.
+  </Card>
+</CardGroup>

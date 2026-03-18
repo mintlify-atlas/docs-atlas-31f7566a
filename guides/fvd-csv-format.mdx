@@ -1,0 +1,87 @@
+---
+title: "FVD CSV format"
+description: "Reference for the tab-separated CSV file that FVD++ exports from No Limits 2, and how UC3Tools parses it."
+---
+
+FVD++ is a scripting tool for [No Limits 2](https://www.nolimitscoaster.com/) that lets you design roller coaster layouts by specifying forces along the track rather than drawing geometry directly. Once you've designed a coaster in FVD++, you export the result as a CSV file and feed it into UC3Tools' **FVD CSV → UC3 World** converter.
+
+## Exporting from No Limits 2
+
+1. Open No Limits 2 and load the track containing your FVD++ script.
+2. In the FVD++ script editor, run the export function to write the CSV file to disk.
+3. The output file is tab-separated with a one-line header row followed by one row per frame.
+
+## Column structure
+
+Each row in the file (after the header) represents one frame along the track. There are 13 columns total:
+
+| Column index | Name | Type | Description |
+|---|---|---|---|
+| 0 | `index` | integer | Frame index. Skipped by the parser. |
+| 1 | `px` | float (m) | Position X |
+| 2 | `py` | float (m) | Position Y |
+| 3 | `pz` | float (m) | Position Z |
+| 4 | `fx` | float | Forward vector X |
+| 5 | `fy` | float | Forward vector Y |
+| 6 | `fz` | float | Forward vector Z |
+| 7 | `lx` | float | Left vector X |
+| 8 | `ly` | float | Left vector Y |
+| 9 | `lz` | float | Left vector Z |
+| 10 | `ux` | float | Up vector X |
+| 11 | `uy` | float | Up vector Y |
+| 12 | `uz` | float | Up vector Z |
+
+Columns 4–12 are unit vectors describing the local orientation of the track frame at each position.
+
+<Warning>
+The parser reads exactly 12 values per row after skipping the index column. If fewer than 12 data columns are present, parsing fails with:
+
+```
+Line N does not contain enough values. Expected 12, got X
+```
+
+Verify your FVD++ export settings include all position and orientation columns before importing.
+</Warning>
+
+## Sample CSV excerpt
+
+The file is tab-separated (`\t`). The header row names are not validated by the parser — only the column positions matter.
+
+```text
+index	px	py	pz	fx	fy	fz	lx	ly	lz	ux	uy	uz
+0	0.0	0.0	0.0	0.0	0.0	1.0	-1.0	0.0	0.0	0.0	1.0	0.0
+1	0.0	0.0	1.0	0.0	0.0	1.0	-1.0	0.0	0.0	0.0	1.0	0.0
+```
+
+## Decimal format
+
+All numeric values must be parseable as `double` using the invariant culture. This means:
+
+- Use `.` as the decimal separator — **not** `,`
+- No thousands separators
+- Exponent notation (`1.5e-3`) is accepted
+
+Files produced on systems with a non-English locale may use `,` by default. If parsing fails with a `FormatException`, open the CSV in a text editor and confirm the decimal character.
+
+## Heartlining offset
+
+After parsing, UC3Tools shifts each frame's position by the heartlining value you configure in the tool:
+
+```
+position -= up * heartlining
+```
+
+This offsets the track centerline along the up vector so that the coaster's ride height above the rail matches the passenger's seat position. The offset is applied in meters and can range from −1.0 to +1.0.
+
+<Note>
+UC3Tools uses a **Y-up, right-handed** coordinate system, consistent with UC3 itself. The forward, left, and up vectors in the CSV are expected to be in that same space. If your FVD++ export uses a different axis convention, the resulting track will be misoriented.
+</Note>
+
+<CardGroup cols={2}>
+  <Card title="FVD CSV → UC3 World" icon="arrow-right-arrow-left" href="/tools/fvd-to-uc3">
+    Configure and run the FVD conversion tool.
+  </Card>
+  <Card title="Troubleshooting" icon="triangle-exclamation" href="/guides/troubleshooting">
+    Fix common parse errors and conversion problems.
+  </Card>
+</CardGroup>

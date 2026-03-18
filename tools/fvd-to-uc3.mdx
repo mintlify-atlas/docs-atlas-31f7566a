@@ -1,0 +1,60 @@
+---
+title: "FVD CSV to UC3 World"
+description: "Convert a No Limits 2 FVD++ CSV export into a UC3 world file containing a fully built coaster track."
+---
+
+FVD++ is a coaster design tool used alongside No Limits 2 that lets you build coaster layouts by specifying forces and geometry. When you finish a design in FVD++, you can export the track geometry as a tab-separated CSV file containing per-frame position and basis vector data. The **FVD CSV to UC3 World** tool reads that export and produces a `.uc3world` file with the coaster track reconstructed as a NURBS spline.
+
+## CSV column format
+
+The FVD++ CSV export must be tab-separated with a header row. The columns after the frame index are:
+
+```text
+index  px    py    pz    fx    fy    fz    lx    ly    lz    ux    uy    uz
+```
+
+Where `p` is position, `f` is the forward vector, `l` is the left vector, and `u` is the up vector — all in world space.
+
+## Usage
+
+<Steps>
+  <Step title="Export the CSV from FVD++">
+    In FVD++, use the export function to write the track frames to a tab-separated CSV file. Verify the file contains a header row followed by one row per frame, with 13 columns: an index and the 12 floating-point components listed above.
+  </Step>
+  <Step title="Open UC3Tools and select the tool">
+    Launch UC3Tools and choose **FVD CSV → UC3 World** from the tool list.
+  </Step>
+  <Step title="Select the input CSV file">
+    Click **Browse** next to the input field and navigate to the `.csv` file exported from FVD++.
+  </Step>
+  <Step title="Choose the output file path">
+    Click **Browse** next to the output field and choose where to save the resulting `.uc3world` file.
+  </Step>
+  <Step title="Adjust the heartlining offset">
+    Use the **Heartlining** slider to set the vertical offset in meters. The slider ranges from **−1.0 m** to **+1.0 m**, with a default of **0.80 m**. Each step on the slider corresponds to 0.01 m.
+
+    The heartlining offset shifts every frame position along the track's local up axis by the specified amount. This compensates for the difference between where FVD++ places the track centerline and where UC3 expects the rail heartline to sit.
+
+    <Info>
+      The default of 0.80 m matches the typical heartline height for most sit-down coasters. You may need to lower this for inverted or floor-less models, or raise it for hyper coasters with a higher seat position.
+    </Info>
+  </Step>
+  <Step title="Click Convert">
+    Click **Convert**. When the process completes, the status bar will display **Done!** The output `.uc3world` file is ready to open in Ultimate Coaster 3.
+  </Step>
+</Steps>
+
+<Warning>
+  The output world contains only the converted coaster track. No terrain is generated or modified. Open the file in UC3 and use the Terrain File Generator or the UC2 to UC3 converter if you need a terrain base.
+</Warning>
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Terrain File Generator" icon="mountain" href="/tools/terrain-generator">
+    Generate a blank terrain world to pair with your converted track.
+  </Card>
+  <Card title="UC2 to UC3 World" icon="arrow-right" href="/tools/uc2-to-uc3">
+    Convert a full UC2 save file including terrain, scenery, and coaster.
+  </Card>
+</CardGroup>

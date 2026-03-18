@@ -1,0 +1,103 @@
+---
+title: "Coaster type mapping"
+description: "How UC2 internal coaster type identifiers map to their UC3 equivalents during conversion."
+---
+
+Ultimate Coaster 2 and Ultimate Coaster 3 use different internal identifiers for coaster types. When you convert a `.uc2sav` file, UC3Tools reads the coaster's `type` field and looks it up in a built-in mapping table to find the equivalent UC3 type. The mapped UC3 type determines which track geometry, car model, and physics profile the coaster uses in UC3.
+
+<Warning>
+If a coaster's UC2 type is not present in the mapping table, conversion will throw a `KeyNotFoundException` and the output file will not be created. You must either rename the coaster type in the `.uc2sav` file to a supported value, or request support for the missing type.
+</Warning>
+
+## How to find your UC2 coaster type
+
+The coaster type is stored as a plain-text string in the `.uc2sav` file under the coaster's `type` field. Open the file in any text editor and search for `type=` within the coaster block. The value is case-sensitive and must match one of the UC2 Type values in the table below exactly.
+
+## Complete type mapping
+
+### Arrow Dynamics
+
+| UC2 Type | UC3 Type |
+|---|---|
+| `arrow` | `ar_corkscrew` |
+| `arrowhyper` | `ar_corkscrew` |
+| `hypergtx` | `ar_corkscrew` |
+| `vekoma` | `ar_corkscrew` |
+
+### Bolliger & Mabillard (B&M)
+
+| UC2 Type | UC3 Type |
+|---|---|
+| `arrow4d` | `bm_wing` |
+| `bmdive6` | `bm_dive_10` |
+| `bmdive8` | `bm_dive_10` |
+| `bmdive10` | `bm_dive_10` |
+| `bmfloorless` | `bm_floorless` |
+| `bmflyer` | `bm_flyer` |
+| `bmflyerlead` | `bm_flyer` |
+| `bmhyper` | `bm_hyper` |
+| `bminvert` | `bm_invert` |
+| `bmsitdown` | `bm_sitdown` |
+| `bmstaggered` | `bm_hyper` |
+| `bmstandup` | `bm_sitdown` |
+| `bmwing` | `bm_wing` |
+
+### Vekoma
+
+| UC2 Type | UC3 Type |
+|---|---|
+| `flyingdutchman` | `vk_dutchman` |
+| `slc` | `vk_slc` |
+| `stc` | `vk_stc` |
+
+### Intamin
+
+| UC2 Type | UC3 Type |
+|---|---|
+| `girderblitzlapbar` | `in_blitz_lapbar` |
+| `girderblitztosr` | `in_rocket_otsr` |
+| `girderinvert` | `in_impulse` |
+| `intamin2spine` | `in_blitz_lapbar` |
+| `intamin2spinelapbar` | `in_blitz_lapbar` |
+| `intamin4` | `in_rocket_lapbar` |
+| `intaminrocket` | `in_rocket_lapbar` |
+| `gerstlauerinfinity` | `in_blitz_lapbar` |
+| `newekoma` | `in_blitz_lapbar` |
+| `xtremespinner` | `in_blitz_lapbar` |
+
+### Premier Rides
+
+| UC2 Type | UC3 Type |
+|---|---|
+| `premierlim` | `pr_lim` |
+| `sr3` | `pr_sr3` |
+
+### Rocky Mountain Construction (RMC)
+
+| UC2 Type | UC3 Type |
+|---|---|
+| `raptor` | `rmc_raptor` |
+| `rmc` | `rmc_hybrid_modern` |
+
+### Schwarzkopf
+
+| UC2 Type | UC3 Type |
+|---|---|
+| `schwarzkopf` | `in_rocket_lapbar` |
+
+### Philadelphia Toboggan Coasters (PTC)
+
+| UC2 Type | UC3 Type |
+|---|---|
+| `gci` | `ptc2` |
+| `ptc2` | `ptc2` |
+| `ptc3` | `ptc3` |
+
+<CardGroup cols={2}>
+  <Card title="UC2 → UC3 World" icon="rotate" href="/tools/uc2-to-uc3">
+    Run the full UC2 park conversion tool.
+  </Card>
+  <Card title="Troubleshooting" icon="triangle-exclamation" href="/guides/troubleshooting">
+    Fix KeyNotFoundException and other conversion errors.
+  </Card>
+</CardGroup>

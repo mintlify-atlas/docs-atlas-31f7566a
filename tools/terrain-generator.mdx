@@ -1,0 +1,75 @@
+---
+title: "Terrain File Generator"
+description: "Generate a blank UC3 world file containing only terrain, optionally shaped by a heightmap image."
+---
+
+The **Terrain File Generator** creates a `.uc3world` file that contains only a terrain mesh — no coasters, no scenery, no water. This is useful as a clean starting point when you want to build a park from scratch in UC3 or when you need a terrain base to pair with a converted coaster track.
+
+The terrain is a flat or heightmap-driven grid. Resolution and width controls let you balance detail against performance, and an optional heightmap lets you import real-world or custom elevation data.
+
+## Usage
+
+<Steps>
+  <Step title="Open UC3Tools and select the tool">
+    Launch UC3Tools and choose **Terrain File Generator** from the tool list.
+  </Step>
+  <Step title="Choose the output file path">
+    Click **Browse** next to the output field and choose where to save the resulting `.uc3world` file.
+  </Step>
+  <Step title="Select a resolution">
+    Choose a resolution from the **Resolution** dropdown. This controls the number of vertices along each axis of the terrain grid.
+
+    | Resolution | Grid size | Best for |
+    |---|---|---|
+    | Sparse | 64 × 64 | Quick previews, large flat areas |
+    | Medium (default) | 128 × 128 | General use |
+    | Dense | 256 × 256 | Detailed landscapes |
+    | Ultra Dense | 512 × 512 | High-fidelity heightmaps, performance-heavy |
+
+    Higher resolutions produce smoother terrain and better heightmap detail, but increase file size and may reduce editor performance on lower-end hardware.
+  </Step>
+  <Step title="Set the terrain width">
+    Enter the total terrain width in the **Width** field. The valid range is **10 m to 10,000 m**, in steps of 5 m. The default is **50 m**.
+
+    Vertex spacing is calculated automatically from the width and resolution:
+
+    ```text
+    vertexSpacing = (width / 2) / resolution
+    ```
+
+    For example, a 200 m wide terrain at Medium (128) resolution gives a vertex spacing of `(200 / 2) / 128 ≈ 0.78 m`.
+  </Step>
+  <Step title="Optionally enable a heightmap">
+    Check **Use Heightmap** to enable heightmap input. When enabled:
+
+    1. Click **Browse** next to the heightmap field and select a PNG or JPG image.
+    2. Set the **Max Height** value (range **1 m to 1,000 m**, default **10 m**). This is the height assigned to fully white pixels.
+
+    The tool samples each pixel's brightness and maps it to a terrain height:
+
+    ```text
+    brightness = (R + G + B) / 3 / 255
+    height = brightness * maxHeight
+    ```
+
+    Black pixels (brightness = 0) produce sea-level terrain. White pixels (brightness = 1) produce terrain at max height. Grey values interpolate between the two.
+
+    <Tip>
+      Use a greyscale PNG for the clearest mapping between pixel value and terrain height. Color images work, but the brightness is averaged across R, G, and B channels, which can produce unexpected results with saturated colors.
+    </Tip>
+  </Step>
+  <Step title="Click Generate">
+    Click **Generate**. When complete, the status bar will display **Done!** Open the `.uc3world` file in Ultimate Coaster 3 to begin building.
+  </Step>
+</Steps>
+
+---
+
+<CardGroup cols={2}>
+  <Card title="FVD CSV to UC3 World" icon="route" href="/tools/fvd-to-uc3">
+    Convert an FVD++ CSV export into a coaster track to place on your terrain.
+  </Card>
+  <Card title="UC2 to UC3 World" icon="arrow-right" href="/tools/uc2-to-uc3">
+    Migrate a full UC2 park including its terrain into UC3.
+  </Card>
+</CardGroup>

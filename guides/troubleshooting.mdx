@@ -1,0 +1,90 @@
+---
+title: "Troubleshooting"
+description: "Solutions to common errors and unexpected behavior in UC3Tools."
+---
+
+<Note>
+Before digging in, check the **status label** at the bottom of each tool panel. UC3Tools displays the most recent error message there after any failed operation.
+</Note>
+
+<AccordionGroup>
+  <Accordion title='"Input file does not exist"'>
+    The file was selected successfully at one point, but was moved, renamed, or deleted before you clicked **Convert**.
+
+    **Fix:** Click **Browse** again to re-select the file at its current location, then retry the conversion.
+  </Accordion>
+
+  <Accordion title='"Line N does not contain enough values. Expected 12, got X"'>
+    The FVD CSV file is missing one or more columns on the indicated row. The parser requires exactly 12 data values per row after the leading index column (position X/Y/Z, forward X/Y/Z, left X/Y/Z, up X/Y/Z).
+
+    **Steps to fix:**
+
+    1. Open the CSV file in a text editor.
+    2. Count the tab-separated values on line `N`. There should be 13 total (index + 12 data columns).
+    3. If columns are missing, check your FVD++ export settings and re-export with all orientation columns enabled.
+    4. If the file appears correct, verify that rows are not wrapped across multiple lines.
+
+    See the [FVD CSV format](/guides/fvd-csv-format) guide for the full column specification.
+  </Accordion>
+
+  <Accordion title="Conversion produces an empty or corrupt .uc3world file">
+    If the output file opens in UC3 but contains no visible track — or UC3 reports a corrupt file — the most likely cause is that the FVD CSV contains all-zero position data.
+
+    **Steps to fix:**
+
+    1. Open the CSV in a text editor or spreadsheet application.
+    2. Check columns 1–3 (`px`, `py`, `pz`). If every row reads `0.0\t0.0\t0.0`, the FVD++ export did not write position data.
+    3. Re-run the FVD++ script in No Limits 2 and export again, ensuring the script completes without errors before exporting.
+    4. Also check that forward, left, and up vectors (columns 4–12) are not all zero — zero vectors produce degenerate track geometry.
+  </Accordion>
+
+  <Accordion title="UC2 coaster type not recognized (KeyNotFoundException)">
+    The converter encountered a UC2 coaster `type` value that is not in the built-in mapping table. Conversion stops immediately and no output file is written.
+
+    **Fix:**
+
+    1. Open the `.uc2sav` file in a text editor.
+    2. Search for `type=` within each coaster block and note the value.
+    3. Compare it against the [coaster type mapping](/guides/coaster-type-mapping) table.
+    4. If the type is similar to a supported one, edit the `type=` line to use the closest supported UC2 type, then retry.
+
+    If the coaster type is a custom or very uncommon model not in the table, open an issue on the [UC3Tools GitHub repository](https://github.com/Vainstains/UC3Tools) to request support.
+  </Accordion>
+
+  <Accordion title='"Please select a heightmap file"'>
+    The **Use heightmap** checkbox is checked in the Terrain File Generator, but no heightmap file has been selected.
+
+    **Fix:** Click **Browse** next to the heightmap field and select a greyscale PNG or JPG file, or uncheck **Use heightmap** to generate a flat terrain instead.
+  </Accordion>
+
+  <Accordion title="Terrain looks wrong scale">
+    The terrain generator calculates the physical size of the terrain mesh from the number of vertices and the vertex spacing value you provide. If the terrain appears too large, too small, or stretched, adjust the **Terrain width** setting.
+
+    The relationship is:
+
+    ```
+    physical size (m) = (vertex count - 1) × vertex spacing (m)
+    ```
+
+    For example, a 512×512 vertex terrain with 1.0 m spacing produces a 511×511 m mesh. To cover a larger area, increase the vertex spacing; to get finer detail at the same physical size, increase the vertex count.
+
+    <Tip>
+    Start with the default settings and compare the terrain dimensions in UC3 against a known reference object before fine-tuning the spacing value.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="App won't launch on Linux or macOS">
+    UC3Tools targets `net9.0-windows` and uses Windows Forms, which is not supported on Linux or macOS by the .NET runtime.
+
+    There is no workaround at this time. UC3Tools must be run on a Windows machine. If you are on Linux or macOS, you can run it inside a Windows virtual machine.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="FVD CSV format" icon="file-csv" href="/guides/fvd-csv-format">
+    Full column reference for the FVD++ CSV export.
+  </Card>
+  <Card title="Coaster type mapping" icon="list" href="/guides/coaster-type-mapping">
+    All supported UC2 coaster types and their UC3 equivalents.
+  </Card>
+</CardGroup>

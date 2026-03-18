@@ -1,0 +1,83 @@
+---
+title: "UC2 to UC3 World"
+description: "Convert an Ultimate Coaster 2 save file into a UC3 world file, migrating terrain, water, camera, coaster track, and scenery."
+---
+
+The **UC2 to UC3 World** tool converts an Ultimate Coaster 2 `.uc2sav` file into a `.uc3world` file. It migrates the major elements of your UC2 park so you can continue working on it in Ultimate Coaster 3.
+
+## What gets converted
+
+| Element | Notes |
+|---|---|
+| Terrain height | Height data is transferred directly. |
+| Water level and color | Water properties carry over to UC3. |
+| Camera position and direction | The editor camera is restored to the same view. |
+| Coaster track | Bezier control points are converted to NURBS spline segments. |
+| Coaster type | Mapped from UC2 type strings to the nearest UC3 equivalent. |
+| Coaster settings | Lift speed and other per-coaster values are transferred where applicable. |
+| Scenery items | Cube, Cylinder, Sphere, rocks, trees, support tubes, and box footers. |
+
+## Usage
+
+<Steps>
+  <Step title="Locate your UC2 save file">
+    Find the `.uc2sav` file for the park you want to convert. UC2 typically saves files in its own documents folder.
+  </Step>
+  <Step title="Open UC3Tools and select the tool">
+    Launch UC3Tools and choose **UC2 → UC3 World** from the tool list.
+  </Step>
+  <Step title="Select the input file">
+    Click **Browse** next to the input field and select your `.uc2sav` file. The output path is filled in automatically using the same filename and directory, with the extension changed to `.uc3world`.
+  </Step>
+  <Step title="Adjust the output path if needed">
+    If you want to save the result to a different location, click **Browse** next to the output field and choose a new path.
+  </Step>
+  <Step title="Click Convert">
+    Click **Convert**. The tool will process the file and write the `.uc3world` output. When complete, the status bar will display **Done!**
+  </Step>
+</Steps>
+
+## Coaster type mapping
+
+UC2 and UC3 use different internal type identifiers for coaster models. The converter maps UC2 types to the closest available UC3 type. For example:
+
+| UC2 type | UC3 type |
+|---|---|
+| `arrow` | `ar_corkscrew` |
+| `bmdive10` | `bm_dive_10` |
+| `bmfloorless` | `bm_floorless` |
+| `bmflyer` | `bm_flyer` |
+| `bmhyper` | `bm_hyper` |
+| `bminvert` | `bm_invert` |
+| `bmsitdown` | `bm_sitdown` |
+| `bmwing` | `bm_wing` |
+| `gci` | `ptc2` |
+| `rmc` | `rmc_hybrid_modern` |
+| `raptor` | `rmc_raptor` |
+| `schwarzkopf` | `in_rocket_lapbar` |
+| `slc` | `vk_slc` |
+
+<Note>
+  For the full coaster type mapping table, see the [Coaster Type Mapping](/guides/coaster-type-mapping) reference. If your UC2 coaster type is not in the map, the converter falls back to a default type.
+</Note>
+
+## What may differ after conversion
+
+- **Track shape**: UC2 uses bezier curves; UC3 uses NURBS. The conversion preserves the control points, but subtle differences in curve interpolation may cause slight shape changes at segment boundaries. Review the track in UC3 after converting.
+- **Coaster color schemes**: UC2 and UC3 color systems are not directly equivalent. You may need to reapply paint schemes after conversion.
+- **Unsupported scenery**: Only the scenery types listed in the table above are converted. Custom or plugin scenery from UC2 is not transferred.
+
+<Warning>
+  Scenery placement applies coordinate corrections to compensate for UC2's odd/even vertex offset. Scenery items will appear at corrected positions in UC3, but check placement for complex arrangements — particularly items near terrain edges — as the offset correction may not be perfect in all cases.
+</Warning>
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Coaster Type Mapping" icon="list" href="/guides/coaster-type-mapping">
+    Full reference table of UC2 to UC3 coaster type mappings.
+  </Card>
+  <Card title="Terrain File Generator" icon="mountain" href="/tools/terrain-generator">
+    Generate a standalone terrain world file.
+  </Card>
+</CardGroup>

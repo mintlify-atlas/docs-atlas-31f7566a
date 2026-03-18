@@ -1,0 +1,288 @@
+---
+title: "LibUC3 schema"
+description: "Message hierarchy and field reference for all major LibUC3 types."
+---
+
+## Message hierarchy
+
+```
+CoasterWorldSaveFileMsg
+└── World: CoasterWorldSettingsMsg
+    ├── Coasters: List<CoasterSettingsMsg>
+    │   └── PartGroups: List<CoasterPartGroupSettingsMsg>
+    │       └── Parts: List<CoasterPartSettingsMsg>
+    │           └── Curves: List<CoasterCurveSettingsMsg>
+    │               ├── NurbsSequence: NurbsSequenceSettingsMsg
+    │               │   └── ControlPoints: List<NurbsSequenceControlPointSettings>
+    │               ├── BankNodes: List<BankNodeSettingsMsg>
+    │               └── SegmentNodes: List<SegmentNodeSettingsMsg>
+    ├── Terrain: TerrainSettingsMsg
+    └── SceneryState: SceneryStateSettingsMsg
+        └── ItemSettings: List<SceneryItemInstanceSettingsMsg>
+```
+
+---
+
+## CoasterWorldSaveFileMsg
+
+Root message. The top-level object that is serialized to and from a `.uc3world` file.
+
+<ParamField path="World" type="CoasterWorldSettingsMsg">
+  The world contents. All coasters, terrain, and scenery live inside this message.
+</ParamField>
+
+---
+
+## CoasterWorldSettingsMsg
+
+Top-level world state. Contains all in-world objects and camera state.
+
+<ParamField path="Coasters" type="List<CoasterSettingsMsg>">
+  All coasters present in the world.
+</ParamField>
+
+<ParamField path="Terrain" type="TerrainSettingsMsg">
+  Terrain mesh geometry and water settings.
+</ParamField>
+
+<ParamField path="SceneryState" type="SceneryStateSettingsMsg">
+  All placed scenery item instances.
+</ParamField>
+
+<ParamField path="InitialCameraPos" type="Vector3">
+  Camera position when the world is first loaded in UC3.
+</ParamField>
+
+<ParamField path="InitialCameraPitch" type="float">
+  Camera pitch (radians) when the world is first loaded.
+</ParamField>
+
+<ParamField path="InitialCameraYaw" type="float">
+  Camera yaw (radians) when the world is first loaded.
+</ParamField>
+
+---
+
+## CoasterSettingsMsg
+
+Represents a single roller coaster within the world.
+
+<ParamField path="Name" type="string">
+  Display name of the coaster shown in the UC3 UI.
+</ParamField>
+
+<ParamField path="TypeId" type="string">
+  Internal coaster type identifier. Controls the track model and physics. Examples: `"bm_invert"`, `"rmc_hybrid_modern"`, `"steel_looping"`.
+</ParamField>
+
+<ParamField path="PartGroups" type="List<CoasterPartGroupSettingsMsg>">
+  Track part groups. Each group contains one or more `CoasterPartSettingsMsg` objects whose `Curves` hold the actual NURBS geometry.
+</ParamField>
+
+<ParamField path="DefaultSegmentColorScheme" type="CoasterSegmentColorSchemeSettingsMsg">
+  The default color scheme applied to segments that don't override it.
+</ParamField>
+
+---
+
+## CoasterCurveSettingsMsg
+
+A single section of track, defined by a NURBS spline plus banking and segment metadata.
+
+<ParamField path="NurbsSequence" type="NurbsSequenceSettingsMsg">
+  The spline that defines the track centerline.
+</ParamField>
+
+<ParamField path="BankNodes" type="List<BankNodeSettingsMsg>">
+  Banking (roll) instructions along the track.
+</ParamField>
+
+<ParamField path="SegmentNodes" type="List<SegmentNodeSettingsMsg>">
+  Functional zone boundaries — stations, brakes, launches, chain lifts.
+</ParamField>
+
+---
+
+## NurbsSequenceSettingsMsg
+
+A NURBS spline defined by a list of control points.
+
+<ParamField path="ControlPoints" type="List<NurbsSequenceControlPointSettings>">
+  Ordered list of control points that define the spline shape.
+</ParamField>
+
+### NurbsSequenceControlPointSettings
+
+<ParamField path="Position" type="Vector3">
+  World-space position of the control point in meters.
+</ParamField>
+
+<ParamField path="Strict" type="bool">
+  When `true`, the spline passes exactly through this point rather than being attracted to it.
+</ParamField>
+
+<ParamField path="Weight" type="float">
+  Influence weight of this control point on the spline shape.
+</ParamField>
+
+---
+
+## BankNodeSettingsMsg
+
+Defines the roll (banking) of the track at a specific control point.
+
+<ParamField path="Angle" type="float">
+  Bank angle in radians. Positive values bank to the right.
+</ParamField>
+
+<ParamField path="ContinuousRoll" type="bool">
+  When `true`, the track rolls continuously through this node instead of transitioning to a fixed angle.
+</ParamField>
+
+<ParamField path="ControlPointIndex" type="int">
+  Zero-based index into the parent curve's `NurbsSequence.ControlPoints` list that this bank node is anchored to.
+</ParamField>
+
+<ParamField path="Smoothness" type="float">
+  Interpolation smoothness from `0.0` (sharp) to `1.0` (smooth).
+</ParamField>
+
+<ParamField path="HeartlinePercentage" type="float">
+  Controls the heartline offset percentage for this node.
+</ParamField>
+
+<ParamField path="Relative" type="bool">
+  When `true`, the bank angle is interpreted relative to the previous frame rather than as an absolute world angle.
+</ParamField>
+
+<ParamField path="DisableRolls" type="bool">
+  When `true`, roll interpolation is suppressed between this node and the next.
+</ParamField>
+
+---
+
+## SegmentNodeSettingsMsg
+
+Marks the start of a functional track zone (station, brake, launch, etc.).
+
+<ParamField path="ControlPointIndex" type="int">
+  Control point index where this segment zone begins.
+</ParamField>
+
+<ParamField path="Uuid" type="string">
+  Unique identifier for this segment node.
+</ParamField>
+
+<ParamField path="SegmentType" type="enum">
+  The functional type of this zone (standard, brake, station, chain lift, launch).
+</ParamField>
+
+<ParamField path="ChainLiftSettings" type="message">
+  Chain lift speed and configuration. Only relevant when `SegmentType` is chain lift.
+</ParamField>
+
+<ParamField path="StationSettings" type="message">
+  Station configuration (wait time, dispatch rules). Only relevant for station zones.
+</ParamField>
+
+<ParamField path="BrakeSettings" type="message">
+  Target speed and deceleration. Only relevant for brake zones.
+</ParamField>
+
+<ParamField path="LaunchSettings" type="message">
+  Launch speed and acceleration. Only relevant for launch zones.
+</ParamField>
+
+---
+
+## TerrainSettingsMsg
+
+The terrain mesh. Heights are stored as a flat grid of floats.
+
+<ParamField path="VertexSpacing" type="float">
+  Distance in meters between adjacent vertices. Setting this scales the entire terrain.
+</ParamField>
+
+<ParamField path="WaterYLevel" type="float">
+  Y height of the water surface in meters. Set to `-2` to disable water.
+</ParamField>
+
+<ParamField path="WaterColor" type="Color4">
+  RGBA color of the water surface.
+</ParamField>
+
+### TerrainSettingsMsg methods
+
+```csharp
+// Initialize the terrain grid
+void ResetTerrain(int vertsPerDirection, Color4 color)
+
+// Set the height of a single vertex
+void SetHeightAtCoord(int col, int row, float height)
+```
+
+`ResetTerrain` allocates a `vertsPerDirection × vertsPerDirection` grid, initializes all heights to zero, and sets the base terrain color. Call this before using `SetHeightAtCoord`.
+
+---
+
+## SceneryStateSettingsMsg
+
+Container for all placed scenery in the world.
+
+<ParamField path="ItemSettings" type="List<SceneryItemInstanceSettingsMsg>">
+  All scenery item instances placed in the world.
+</ParamField>
+
+---
+
+## SceneryItemInstanceSettingsMsg
+
+A single placed scenery object.
+
+<ParamField path="SceneryItemId" type="string">
+  The identifier of the scenery asset to use (must match a UC3 asset ID).
+</ParamField>
+
+<ParamField path="OriginX" type="float">
+  World X position in meters.
+</ParamField>
+
+<ParamField path="OriginY" type="float">
+  World Y position in meters.
+</ParamField>
+
+<ParamField path="OriginZ" type="float">
+  World Z position in meters.
+</ParamField>
+
+<ParamField path="ScaleX" type="float">
+  Scale multiplier along the X axis.
+</ParamField>
+
+<ParamField path="ScaleY" type="float">
+  Scale multiplier along the Y axis.
+</ParamField>
+
+<ParamField path="ScaleZ" type="float">
+  Scale multiplier along the Z axis.
+</ParamField>
+
+<ParamField path="RotationYaw" type="float">
+  Yaw rotation in radians.
+</ParamField>
+
+<ParamField path="RotationPitch" type="float">
+  Pitch rotation in radians.
+</ParamField>
+
+<ParamField path="RotationRoll" type="float">
+  Roll rotation in radians.
+</ParamField>
+
+<ParamField path="ColorChannels" type="List<Color4>">
+  Per-channel color overrides for the scenery item's material slots.
+</ParamField>
+
+<ParamField path="TerrainAttached" type="bool">
+  When `true`, the item's Y position tracks the terrain height at its XZ location.
+</ParamField>

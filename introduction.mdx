@@ -1,0 +1,51 @@
+---
+title: "Introduction"
+description: "A Windows desktop multitool for Ultimate Coaster 3 — convert FVD exports, migrate UC2 saves, and generate custom terrain."
+---
+
+UC3Tools is a free, open-source Windows Forms application that provides utilities for working with [Ultimate Coaster 3](https://store.steampowered.com/app/1999950/Ultimate_Coaster_3/) save files. Whether you're bringing in a coaster designed in No Limits 2's FVD++ tool, migrating a park from Ultimate Coaster 2, or building a custom terrain from a heightmap, UC3Tools handles the conversion.
+
+## What's included
+
+<CardGroup cols={2}>
+  <Card title="FVD CSV → UC3 World" icon="arrow-right-arrow-left" href="/tools/fvd-to-uc3">
+    Import coaster layouts exported from No Limits 2's FVD++ tool directly into UC3 world files.
+  </Card>
+  <Card title="UC2 → UC3 World" icon="rotate" href="/tools/uc2-to-uc3">
+    Migrate complete Ultimate Coaster 2 parks — terrain, coasters, and scenery — into UC3 format.
+  </Card>
+  <Card title="Terrain File Generator" icon="mountain" href="/tools/terrain-generator">
+    Generate flat or heightmap-based terrain files at configurable resolutions up to 512×512 vertices.
+  </Card>
+  <Card title="Developer Reference" icon="code" href="/reference/architecture">
+    Explore LibUC2, LibUC3, and VProto — the internal libraries powering UC3Tools.
+  </Card>
+</CardGroup>
+
+## Key capabilities
+
+- **FVD conversion** — Reads the tab-separated CSV output from FVD++ and reconstructs the track as a NURBS spline in UC3, with adjustable heartlining offset (−1.0 to +1.0 m).
+- **UC2 migration** — Converts `.uc2sav` files to `.uc3world`, mapping terrain height data, water settings, camera position, 30+ coaster types, and all scenery objects.
+- **Terrain generation** — Produces `.uc3world` files containing only a terrain mesh, optionally shaped from a greyscale PNG or JPG heightmap.
+- **No Limits 2 round-trip** — Supports importing coasters designed using No Limits 2's FVD++ script export workflow.
+
+## Technology
+
+UC3Tools is built with:
+
+- **.NET 9 / Windows Forms** — native Windows GUI
+- **LibUC3** — reads and writes UC3's protobuf-based `.uc3world` binary format
+- **LibUC2** — parses UC2's text-based UCON save format
+- **VProto** — a custom protobuf serialization library written for this project
+- **OpenTK.Mathematics** — 3D vector and quaternion math
+
+## Getting started
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Download and run UC3Tools on Windows.
+  </Card>
+  <Card title="FVD CSV format" icon="file-csv" href="/guides/fvd-csv-format">
+    Understand the expected input format for FVD conversions.
+  </Card>
+</CardGroup>
