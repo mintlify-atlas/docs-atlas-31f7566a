@@ -28,10 +28,10 @@ Creates a new `CoasterSettingsMsg` populated with a default track geometry (a si
 ## Basic usage
 
 ```csharp
-// Create a new world and add a coaster
+// Create a new world and assign a coaster to it
 var world = UC3.CreateBlankWorld();
 var coaster = UC3.CreateCoaster("My Coaster");
-world.World.Coasters.Add(coaster);
+world.World.Coasters = [coaster];
 
 // Write to disk
 File.WriteAllBytes("output.uc3world", world.SerializeToBytes());
@@ -65,7 +65,7 @@ terrain.WaterYLevel = 2.5f;
 ```
 
 <Note>
-Vertex coordinates use a flat 2D grid. `col` and `row` are zero-based indices from 0 to `vertsPerDirection - 1`.
+Vertex coordinates use a flat 2D grid. The actual grid size after `ResetTerrain(n, ...)` is `(n × 2 + 1) × (n × 2 + 1)`, so `col` and `row` range from `0` to `n × 2` inclusive.
 </Note>
 
 ## Working with coaster track
@@ -76,14 +76,13 @@ Track geometry is stored as NURBS curves inside a `CoasterCurveSettingsMsg`. The
 CoasterSettingsMsg
 └── PartGroups: List<CoasterPartGroupSettingsMsg>
     └── (part group)
-        └── Parts: List<CoasterPartSettingsMsg>
-            └── (part)
-                └── Curves: List<CoasterCurveSettingsMsg>
-                    └── (curve)
-                        ├── NurbsSequence: NurbsSequenceSettingsMsg
-                        │   └── ControlPoints: List<NurbsSequenceControlPointSettings>
-                        ├── BankNodes: List<BankNodeSettingsMsg>
-                        └── SegmentNodes: List<SegmentNodeSettingsMsg>
+        └── Part: CoasterPartSettingsMsg
+            └── Curves: List<CoasterCurveSettingsMsg>
+                └── (curve)
+                    ├── NurbsSequence: NurbsSequenceSettingsMsg
+                    │   └── ControlPoint: List<NurbsSequenceControlPointSettings>
+                    ├── BankNodes: List<BankNodeSettingsMsg>
+                    └── SegmentNodes: List<SegmentNodeSettingsMsg>
 ```
 
 Each control point has a `Position` (Vector3), a `Weight` (float), and a `Strict` flag that pins the spline through that point exactly.
@@ -93,24 +92,26 @@ Each control point has a `Position` (Vector3), a `Weight` (float), and a `Strict
 ```csharp
 var item = new SceneryItemInstanceSettingsMsg
 {
-    SceneryItemId = "oak_tree",
+    // SceneryItemId must match a UC3 asset ID, e.g. a billboard oak tree:
+    SceneryItemId = "com.phonygames.coasterthree.scenery.billboardtrees.oaktree0",
     OriginX = 10.0f,
     OriginY = 0.0f,
     OriginZ = 10.0f,
     ScaleX = 1.0f,
     ScaleY = 1.0f,
     ScaleZ = 1.0f,
+    TerrainAttached = true,
 };
 world.World.SceneryState.ItemSettings.Add(item);
 ```
 
 ## See also
 
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card title="LibUC3 schema" icon="list-tree" href="/reference/libuc3/schema">
     Full message hierarchy with field-level documentation for all major LibUC3 types.
   </Card>
   <Card title="VProto" icon="binary" href="/reference/vproto">
     The serialization library that underpins LibUC3's binary format.
   </Card>
-</Columns>
+</CardGroup>

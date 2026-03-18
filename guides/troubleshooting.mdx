@@ -60,13 +60,13 @@ Before digging in, check the **status label** at the bottom of each tool panel. 
   <Accordion title="Terrain looks wrong scale">
     The terrain generator calculates the physical size of the terrain mesh from the number of vertices and the vertex spacing value you provide. If the terrain appears too large, too small, or stretched, adjust the **Terrain width** setting.
 
-    The relationship is:
+    The actual terrain width is determined by the **Terrain Width** input and the selected resolution. The converter calculates vertex spacing as:
 
     ```
-    physical size (m) = (vertex count - 1) × vertex spacing (m)
+    vertexSpacing = (terrainWidth / 2) / resolution
     ```
 
-    For example, a 512×512 vertex terrain with 1.0 m spacing produces a 511×511 m mesh. To cover a larger area, increase the vertex spacing; to get finer detail at the same physical size, increase the vertex count.
+    For example, a 200 m wide terrain at Dense (256) resolution gives `(200 / 2) / 256 ≈ 0.39 m` vertex spacing. To cover a larger physical area, increase the terrain width; to get finer detail at the same size, increase the resolution.
 
     <Tip>
     Start with the default settings and compare the terrain dimensions in UC3 against a known reference object before fine-tuning the spacing value.

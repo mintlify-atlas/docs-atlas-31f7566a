@@ -10,10 +10,10 @@ CoasterWorldSaveFileMsg
 └── World: CoasterWorldSettingsMsg
     ├── Coasters: List<CoasterSettingsMsg>
     │   └── PartGroups: List<CoasterPartGroupSettingsMsg>
-    │       └── Parts: List<CoasterPartSettingsMsg>
+    │       └── Part: CoasterPartSettingsMsg
     │           └── Curves: List<CoasterCurveSettingsMsg>
     │               ├── NurbsSequence: NurbsSequenceSettingsMsg
-    │               │   └── ControlPoints: List<NurbsSequenceControlPointSettings>
+    │               │   └── ControlPoint: List<NurbsSequenceControlPointSettings>
     │               ├── BankNodes: List<BankNodeSettingsMsg>
     │               └── SegmentNodes: List<SegmentNodeSettingsMsg>
     ├── Terrain: TerrainSettingsMsg
@@ -72,7 +72,7 @@ Represents a single roller coaster within the world.
 </ParamField>
 
 <ParamField path="TypeId" type="string">
-  Internal coaster type identifier. Controls the track model and physics. Examples: `"bm_invert"`, `"rmc_hybrid_modern"`, `"steel_looping"`.
+  Internal coaster type identifier. Controls the track model and physics. Examples: `"bm_invert"`, `"rmc_hybrid_modern"`, `"ptc2"`. See the [coaster type mapping](/guides/coaster-type-mapping) guide for the full list of UC3 type IDs used during UC2 conversion.
 </ParamField>
 
 <ParamField path="PartGroups" type="List<CoasterPartGroupSettingsMsg>">
@@ -107,8 +107,8 @@ A single section of track, defined by a NURBS spline plus banking and segment me
 
 A NURBS spline defined by a list of control points.
 
-<ParamField path="ControlPoints" type="List<NurbsSequenceControlPointSettings>">
-  Ordered list of control points that define the spline shape.
+<ParamField path="ControlPoint" type="List<NurbsSequenceControlPointSettings>">
+  Ordered list of control points that define the spline shape. The field is named `ControlPoint` (singular) in the source, even though it is a list.
 </ParamField>
 
 ### NurbsSequenceControlPointSettings
@@ -139,8 +139,8 @@ Defines the roll (banking) of the track at a specific control point.
   When `true`, the track rolls continuously through this node instead of transitioning to a fixed angle.
 </ParamField>
 
-<ParamField path="ControlPointIndex" type="int">
-  Zero-based index into the parent curve's `NurbsSequence.ControlPoints` list that this bank node is anchored to.
+<ParamField path="ControlPointIndex" type="float">
+  Zero-based index into the parent curve's `NurbsSequence.ControlPoint` list that this bank node is anchored to. Stored as float in the protobuf schema.
 </ParamField>
 
 <ParamField path="Smoothness" type="float">
@@ -165,16 +165,24 @@ Defines the roll (banking) of the track at a specific control point.
 
 Marks the start of a functional track zone (station, brake, launch, etc.).
 
-<ParamField path="ControlPointIndex" type="int">
-  Control point index where this segment zone begins.
+<ParamField path="ControlPointIndex" type="float">
+  Control point index where this segment zone begins. Stored as a float in the protobuf schema.
 </ParamField>
 
 <ParamField path="Uuid" type="string">
   Unique identifier for this segment node.
 </ParamField>
 
-<ParamField path="SegmentType" type="enum">
-  The functional type of this zone (standard, brake, station, chain lift, launch).
+<ParamField path="SegmentType" type="SegmentNodeSettingsMsg.Type">
+  The functional type of this zone. Enum values:
+
+  | Value | Name | Description |
+  |---|---|---|
+  | `0` | `Standard` | Normal track section |
+  | `1` | `ChainLift` | Chain lift hill |
+  | `2` | `Brake` | Brake run |
+  | `3` | `Launch` | Launch section |
+  | `4` | `Station` | Station / boarding area |
 </ParamField>
 
 <ParamField path="ChainLiftSettings" type="message">
@@ -221,7 +229,7 @@ void ResetTerrain(int vertsPerDirection, Color4 color)
 void SetHeightAtCoord(int col, int row, float height)
 ```
 
-`ResetTerrain` allocates a `vertsPerDirection × vertsPerDirection` grid, initializes all heights to zero, and sets the base terrain color. Call this before using `SetHeightAtCoord`.
+`ResetTerrain` allocates a `(vertsPerDirection × 2 + 1) × (vertsPerDirection × 2 + 1)` height grid (the extra vertices allow for edge vertices on both sides), initializes all heights to zero, and sets the base terrain tint color. Call this before using `SetHeightAtCoord`.
 
 ---
 
@@ -279,8 +287,8 @@ A single placed scenery object.
   Roll rotation in radians.
 </ParamField>
 
-<ParamField path="ColorChannels" type="List<Color4>">
-  Per-channel color overrides for the scenery item's material slots.
+<ParamField path="ColorChannels" type="List<SceneryColorChannelSettingsMsg>">
+  Per-channel color and texture settings for the scenery item's material slots.
 </ParamField>
 
 <ParamField path="TerrainAttached" type="bool">

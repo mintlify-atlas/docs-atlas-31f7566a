@@ -59,9 +59,9 @@ The three built-in tools are:
 
 | Class | Name shown in UI | Purpose |
 |---|---|---|
-| `FvdToUc3Tool` | FVD to UC3 | Converts FVD track files to UC3 coasters |
-| `Uc2ToUc3Tool` | UC2 to UC3 | Converts full UC2 parks to UC3 worlds |
-| `TerrainGenTool` | Terrain generator | Standalone terrain mesh generator |
+| `FvdToUc3Tool` | `FVD CSV → UC3 World` | Converts FVD++ CSV exports to UC3 coaster world files |
+| `Uc2ToUc3Tool` | `UC2 → UC3 World` | Converts full UC2 parks to UC3 worlds |
+| `TerrainGenTool` | `Terrain File Generator` | Standalone terrain mesh generator |
 
 ## Data flow
 
@@ -83,7 +83,7 @@ Write output file
 
 ## Library summaries
 
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card title="LibUC3" icon="file-binary" href="/reference/libuc3/overview">
     Reads and writes UC3's `.uc3world` binary format. Provides `CreateBlankWorld()` and `CreateCoaster()` factory helpers, plus the full protobuf message hierarchy for coasters, terrain, and scenery.
   </Card>
@@ -96,4 +96,4 @@ Write output file
   <Card title="UC3Tools" icon="layout-panel-left" href="/reference/architecture">
     WinForms host application. Wires together the three libraries through the `ITool` plugin interface and conversion classes.
   </Card>
-</Columns>
+</CardGroup>

@@ -58,7 +58,7 @@ UC2 and UC3 use different internal type identifiers for coaster models. The conv
 | `slc` | `vk_slc` |
 
 <Note>
-  For the full coaster type mapping table, see the [Coaster Type Mapping](/guides/coaster-type-mapping) reference. If your UC2 coaster type is not in the map, the converter falls back to a default type.
+  For the full coaster type mapping table, see the [Coaster Type Mapping](/guides/coaster-type-mapping) reference. If your UC2 coaster type is not in the map, the converter throws a `KeyNotFoundException` and no output file is written.
 </Note>
 
 ## What may differ after conversion
