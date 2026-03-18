@@ -1,0 +1,84 @@
+{
+  "projectType": "general",
+  "projectName": "UC3Tools",
+  "projectDescription": "A Windows desktop multitool for Ultimate Coaster 3 that converts FVD CSV exports and UC2 save files into UC3 world files, and generates custom terrain.",
+  "theme": "mint",
+  "primaryColor": "#1E6FD9",
+  "lightColor": "#E8F0FD",
+  "darkColor": "#0D3A7A",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "installation"]
+          },
+          {
+            "group": "Tools",
+            "pages": [
+              "tools/fvd-to-uc3",
+              "tools/uc2-to-uc3",
+              "tools/terrain-generator"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/fvd-csv-format",
+              "guides/coaster-type-mapping",
+              "guides/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Developer Reference",
+        "groups": [
+          {
+            "group": "Architecture",
+            "pages": [
+              "reference/architecture",
+              "reference/vproto"
+            ]
+          },
+          {
+            "group": "LibUC3",
+            "pages": [
+              "reference/libuc3/overview",
+              "reference/libuc3/schema"
+            ]
+          },
+          {
+            "group": "LibUC2",
+            "pages": [
+              "reference/libuc2/overview",
+              "reference/libuc2/schema"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Convert FVD (No Limits 2) CSV exports to UC3 world files with adjustable heartlining",
+    "Migrate Ultimate Coaster 2 save files (.uc2sav) to UC3 world format including terrain, coasters, and scenery",
+    "Generate flat or heightmap-based terrain files at configurable resolutions (64–512 vertices per direction)",
+    "Supports 30+ coaster type mappings from UC2 to UC3",
+    "Custom VProto library for reading and writing UC3's protobuf-based binary file format"
+  ],
+  "publicApiSurface": [
+    "Converter.ConvertFVDCsvToUC3(FVDConverterArgs args)",
+    "UC2ToUC3Converter.Convert(UC2ToUC3ConverterArgs args)",
+    "UC3.CreateBlankWorld() → CoasterWorldSaveFileMsg",
+    "UC3.CreateCoaster(string name) → CoasterSettingsMsg",
+    "UC2.LoadWorld(string path) → Schema.World",
+    "Message.Parse<TMessage>(byte[] bytes)",
+    "Message.SerializeToBytes() → byte[]",
+    "FVDFrameParser.ParseFramesFromFile(string filePath) → List<FVDFrame>",
+    "TerrainGenTool (Terrain File Generator UI)",
+    "FvdToUc3Tool (FVD CSV to UC3 UI)",
+    "Uc2ToUc3Tool (UC2 to UC3 UI)"
+  ]
+}
